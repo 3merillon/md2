@@ -7,6 +7,7 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Dependencies / builds
 node_modules
 dist
 dist-ssr
@@ -23,15 +24,14 @@ dist-ssr
 *.sln
 *.sw?
 
-# Rust build artifacts
-rust/marching-cubes/pkg/
-rust/marching-cubes/target/
-
 # WASM build outputs in Vite src
 src/gl/marching-cubes-wasm/marching_cubes_bg.wasm
 src/gl/marching-cubes-wasm/marching_cubes.js
 src/gl/marching-cubes-wasm/marching_cubes_bg.js
 src/gl/marching-cubes-wasm/.wasm-pack*
 
-# Vite config
+# Vite config (if generated locally)
 vite.config.js
+
+public/ogro/
+**/ogro/
