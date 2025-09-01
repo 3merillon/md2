@@ -15,7 +15,7 @@ Have fun, and may your jump landings always feel right.
 
 ## Live Demo
 
-- Try it here: https://md2.vercel.app
+- Try it here: https://md2-seven.vercel.app
 - Screenshot:
 
 ![MD2 demo screenshot](./public/screenshot.png)
