@@ -1,3 +1,5 @@
+import { ANIMS } from './md2.js';
+
 export class AnimationController {
   constructor() {
     // Character state
@@ -13,7 +15,7 @@ export class AnimationController {
     this.currentJump = null;
     this.currentDeath = null;
 
-    // Landing decision (base picked at landing start to avoid pop)
+    // Landing decision (base picked at landing)
     this.landingBaseAnimation = null;
     this.landingBaseAnimTime = 0;
     
@@ -36,7 +38,7 @@ export class AnimationController {
     this.jumpBlendDuration = 0.15; // Very fast jump transitions
     this.deathBlendDuration = 0.4; // Dramatic death transitions
 
-    // Pick landing target at the last jump frame (configurable) for pop-free transitions.
+    // Pick landing target at the last jump frame (configurable)
     this.jumpReturnAt = 1.0; // 1.0 means "at landing frame" (see updateJump state below)
     
     // Blend states
@@ -68,6 +70,21 @@ export class AnimationController {
     
     // Jump handling
     this.jumpInterruptible = false; // Can be interrupted by death only
+
+    // Optional external movement state callback (e.g., from keyboard manager)
+    this.getMovementStateCallback = null;
+  }
+
+  // Read current movement intent (live)
+  readCurrentMoving() {
+    if (typeof this.getMovementStateCallback === 'function') {
+      try {
+        return !!this.getMovementStateCallback();
+      } catch {
+        return this.isMoving;
+      }
+    }
+    return this.isMoving;
   }
   
   // Stance control
@@ -105,15 +122,23 @@ export class AnimationController {
       this.updateBaseAnimation();
     }
   }
+
+  // External callback to read live movement state (e.g. WASD)
+  setMovementStateCallback(callback) {
+    this.getMovementStateCallback = callback;
+  }
   
   // Update base animation based on stance and movement
   updateBaseAnimation() {
+    // Prefer live input state if callback provided
+    let currentMoving = this.readCurrentMoving();
+    
     let newBaseAnim;
     
     if (this.stance === 'standing') {
-      newBaseAnim = this.isMoving ? this.standingAnimations.moving : this.standingAnimations.idle;
+      newBaseAnim = currentMoving ? this.standingAnimations.moving : this.standingAnimations.idle;
     } else { // crouching
-      newBaseAnim = this.isMoving ? this.crouchingAnimations.moving : this.crouchingAnimations.idle;
+      newBaseAnim = currentMoving ? this.crouchingAnimations.moving : this.crouchingAnimations.idle;
     }
     
     if (newBaseAnim !== this.targetBaseAnimation) {
@@ -243,21 +268,47 @@ export class AnimationController {
     this.blendFactor = 0.0;
   }
   
-  // Reset from death
+  // Reset from death — pick the correct base immediately (like jump landing / oneshot return)
   resurrect() {
+    // Clear death/oneshot/jump state
     this.isDead = false;
     this.isPlayingDeath = false;
     this.currentDeath = null;
     this.deathTime = 0;
-    this.blendState = 'base';
-    this.blendFactor = 0.0;
+
+    this.isPlayingOneShot = false;
+    this.currentOneShot = null;
+    this.oneShotTime = 0;
+
+    this.isJumping = false;
+    this.currentJump = null;
+    this.jumpTime = 0;
+
+    this.landingBaseAnimation = null;
+    this.landingBaseAnimTime = 0;
+
+    // Choose stance (default to standing) but keep current stance if you prefer
+    this.stance = 'standing';
+
+    // Read live input state at the exact moment of resurrect
+    const movingNow = this.readCurrentMoving();
+    this.isMoving = movingNow;
+
+    // Pick the immediate base based on current stance + input
+    const base = (this.stance === 'standing')
+      ? (movingNow ? this.standingAnimations.moving : this.standingAnimations.idle)
+      : (movingNow ? this.crouchingAnimations.moving : this.crouchingAnimations.idle);
+
+    // Lock both current and target to this base to avoid any flash of the old anim
+    this.currentBaseAnimation = base;
+    this.targetBaseAnimation = base;
     this.baseAnimTime = 0;
     this.targetBaseAnimTime = 0;
-    
-    // Reset to default state
-    this.stance = 'standing';
-    this.isMoving = false;
-    this.updateBaseAnimation();
+
+    // Fully reset blending so we are cleanly on base
+    this.blendState = 'base';
+    this.blendFactor = 0.0;
+    this.blendTime = 0.0;
   }
   
   // Update animation state
@@ -309,9 +360,28 @@ export class AnimationController {
       case 'oneshot': {
         const oneShotRange = ANIMS[this.currentOneShot];
         const oneShotLength = oneShotRange.end - oneShotRange.start + 1;
+
+        // During one-shot, allow UI/inputs to update intent (isMoving) but do not change base yet.
         if (this.oneShotTime >= oneShotLength) {
+          // Pick the return base ONCE, based on the latest input/state (like jump landing).
+          const movingNow = this.readCurrentMoving();
+          this.isMoving = movingNow; // keep internal state in sync
+
+          const returnBase = (this.stance === 'standing')
+            ? (movingNow ? this.standingAnimations.moving : this.standingAnimations.idle)
+            : (movingNow ? this.crouchingAnimations.moving : this.crouchingAnimations.idle);
+
+          // Lock base to the return target immediately.
+          this.currentBaseAnimation = returnBase;
+          this.baseAnimTime = 0;
+
+          // Keep target in sync; if input changes during the fade, we'll transition after we're back on base.
+          this.targetBaseAnimation = returnBase;
+          this.targetBaseAnimTime = 0;
+
           this.blendState = 'blending_to_base';
           this.blendTime = 0;
+          // isPlayingOneShot turns false; currentOneShot remains valid for sampling until blend completes
           this.isPlayingOneShot = false;
         }
         break;
@@ -322,6 +392,14 @@ export class AnimationController {
         if (this.blendFactor <= 0.0) {
           this.blendState = 'base';
           this.currentOneShot = null;
+
+          // If the user changed input during the fade back, smoothly transition after we're on base.
+          this.updateBaseAnimation();
+          if (this.currentBaseAnimation !== this.targetBaseAnimation) {
+            this.blendState = 'blending_base';
+            this.blendTime = 0;
+            this.blendFactor = 0.0;
+          }
         }
         break;
         
@@ -344,20 +422,21 @@ export class AnimationController {
 
         if (this.jumpTime >= exitThreshold) {
           // Pick the landing base ONCE, based on the latest input/state.
-          // This avoids briefly blending toward an outdated base, removing the pop.
+          const movingNow = this.readCurrentMoving();
+          this.isMoving = movingNow;
+
           const landingBase = (this.stance === 'standing')
-            ? (this.isMoving ? this.standingAnimations.moving : this.standingAnimations.idle)
-            : (this.isMoving ? this.crouchingAnimations.moving : this.crouchingAnimations.idle);
+            ? (movingNow ? this.standingAnimations.moving : this.standingAnimations.idle)
+            : (movingNow ? this.crouchingAnimations.moving : this.crouchingAnimations.idle);
 
           this.landingBaseAnimation = landingBase;
           this.landingBaseAnimTime = 0;
 
-          // Lock base to the landing target immediately. Since blendFactor starts at 1.0,
-          // we still see full jump at first, then smoothly reveal the chosen base.
+          // Lock base to the landing target immediately.
           this.currentBaseAnimation = this.landingBaseAnimation;
           this.baseAnimTime = this.landingBaseAnimTime;
 
-          // Keep target in sync; if input changes during the landing blend, we'll handle it after landing.
+          // Keep target in sync.
           this.targetBaseAnimation = this.landingBaseAnimation;
           this.targetBaseAnimTime = 0;
 
@@ -376,6 +455,7 @@ export class AnimationController {
           this.currentJump = null;
 
           // If user changed input during the landing fade, smoothly transition after landing.
+          this.updateBaseAnimation();
           if (this.currentBaseAnimation !== this.targetBaseAnimation) {
             this.blendState = 'blending_base';
             this.blendTime = 0;
@@ -524,5 +604,3 @@ export class AnimationController {
     this.jumpReturnAt = Math.max(0.0, Math.min(1.0, fraction01));
   }
 }
-
-import { ANIMS } from './md2.js';

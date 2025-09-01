@@ -147,6 +147,9 @@ function shortestAngleDelta(a, b) {
 // Keyboard input state
 const keys = { w:false, a:false, s:false, d:false };
 
+// Add a flag to track if we're in button control mode
+let buttonControlMode = false;
+
 // Compute camera-space forward/right projected on XZ plane
 function getCameraBasisXZ() {
   const eye = orbitEye();
@@ -164,9 +167,18 @@ function getCameraBasisXZ() {
   return { forward:[fx, 0, fz], right:[rx, 0, rz] };
 }
 
-// Update movement and target yaw based on keys
+// Get current movement state from keyboard keys
+function getCurrentKeyboardMovementState() {
+  if (buttonControlMode) return false;
+  return keys.w || keys.a || keys.s || keys.d;
+}
+
+// Update movement and target yaw based on keys (event-driven)
 function updateMovementFromKeys() {
-  const any = keys.w || keys.a || keys.s || keys.d;
+  // Don't process keyboard movement if we're in button control mode
+  if (buttonControlMode) return;
+  
+  const any = getCurrentKeyboardMovementState();
   if (!animationController || animationController.isDead) return;
 
   if (any) {
@@ -185,6 +197,43 @@ function updateMovementFromKeys() {
   } else {
     animationController.setMovement(false);
   }
+}
+
+// NEW: Continuously recompute yaw while keys are pressed so WASD stays screen-space during camera rotation
+function updateMovementFromKeysContinuous() {
+  if (buttonControlMode) return;
+  if (!animationController || animationController.isDead) return;
+  const any = getCurrentKeyboardMovementState();
+  if (!any) return;
+
+  const { forward, right } = getCameraBasisXZ();
+  let vx = 0, vz = 0;
+  if (keys.w) { vx += forward[0]; vz += forward[2]; }
+  if (keys.s) { vx -= forward[0]; vz -= forward[2]; }
+  if (keys.d) { vx += right[0];   vz += right[2]; }
+  if (keys.a) { vx -= right[0];   vz -= right[2]; }
+  const len = Math.hypot(vx, vz);
+  if (len > 1e-5) {
+    vx /= len; vz /= len;
+    targetYaw = Math.atan2(vz, vx);
+  }
+  // Ensure movement "intent" stays active while keys are held
+  animationController.setMovement(true);
+}
+
+// Helper function to clear keyboard state
+function clearKeyboardState() {
+  keys.w = keys.a = keys.s = keys.d = false;
+  buttonControlMode = true;
+  // Clear movement from animation controller
+  if (animationController) {
+    animationController.setMovement(false);
+  }
+}
+
+// Helper function to enable keyboard control
+function enableKeyboardControl() {
+  buttonControlMode = false;
 }
 
 // MD2GPUModel with blending support
@@ -419,6 +468,8 @@ function setupControls() {
     
     // Reset animation controller
     animationController = new AnimationController();
+    // Set up the movement state callback
+    animationController.setMovementStateCallback(getCurrentKeyboardMovementState);
     
     populateSkinsAndWeapons();
     updateDynamicButtons();
@@ -440,30 +491,40 @@ function setupControls() {
 
   // Stance and movement controls
   standStillBtn.addEventListener('click', () => {
+    clearKeyboardState();
     animationController.setStanceAndMovement('standing', false);
+    standStillBtn.blur();
   });
 
   standMoveBtn.addEventListener('click', () => {
+    clearKeyboardState();
     animationController.setStanceAndMovement('standing', true);
+    standMoveBtn.blur();
   });
 
   crouchStillBtn.addEventListener('click', () => {
+    clearKeyboardState();
     animationController.setStanceAndMovement('crouching', false);
+    crouchStillBtn.blur();
   });
 
   crouchMoveBtn.addEventListener('click', () => {
+    clearKeyboardState();
     animationController.setStanceAndMovement('crouching', true);
+    crouchMoveBtn.blur();
   });
 
   // Jump control
   jumpBtn.addEventListener('click', () => {
     animationController.playJump();
+    jumpBtn.blur();
   });
 
   // Resurrect control
   resurrectBtn.addEventListener('click', () => {
     animationController.resurrect();
     updateDynamicButtons();
+    resurrectBtn.blur();
   });
 
   az.addEventListener('input', () => {
@@ -475,12 +536,17 @@ function setupControls() {
   });
 }
 
-// Keyboard controls (WASD + Space)
+// Updated keyboard controls - now work globally regardless of focus
 function setupKeyboardControls() {
   const onKeyDown = (e) => {
+    // Only ignore keyboard for actual text input fields, not buttons or selects
     const tag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : '';
-    // Ignore inputs when UI fields are focused to prevent unintended dropdown changes
-    if (tag === 'input' || tag === 'textarea' || tag === 'select' || tag === 'button') return;
+    const type = (e.target && e.target.type) ? e.target.type.toLowerCase() : '';
+    const isTextInput = (tag === 'input' && (type === 'text' || type === 'number' || type === 'email' || type === 'password' || type === 'search' || type === 'url')) || tag === 'textarea';
+    if (isTextInput) return;
+
+    // Enable keyboard control when keys are pressed
+    buttonControlMode = false;
 
     switch (e.code) {
       case 'KeyW': if (!keys.w) { keys.w = true; updateMovementFromKeys(); e.preventDefault(); } break;
@@ -488,10 +554,9 @@ function setupKeyboardControls() {
       case 'KeyS': if (!keys.s) { keys.s = true; updateMovementFromKeys(); e.preventDefault(); } break;
       case 'KeyD': if (!keys.d) { keys.d = true; updateMovementFromKeys(); e.preventDefault(); } break;
       case 'KeyC': {
-        // Toggle crouch/stand (animationController guards jumping/dead internally)
         const next = (animationController.stance === 'standing') ? 'crouching' : 'standing';
         animationController.setStance(next);
-        updateDynamicButtons(); // reflect stance-specific buttons enabled/disabled
+        updateDynamicButtons();
         e.preventDefault();
         break;
       }
@@ -502,9 +567,12 @@ function setupKeyboardControls() {
       default: break;
     }
   };
+  
   const onKeyUp = (e) => {
     const tag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : '';
-    if (tag === 'input' || tag === 'textarea' || tag === 'select' || tag === 'button') return;
+    const type = (e.target && e.target.type) ? e.target.type.toLowerCase() : '';
+    const isTextInput = (tag === 'input' && (type === 'text' || type === 'number' || type === 'email' || type === 'password' || type === 'search' || type === 'url')) || tag === 'textarea';
+    if (isTextInput) return;
 
     switch (e.code) {
       case 'KeyW': keys.w = false; updateMovementFromKeys(); e.preventDefault(); break;
@@ -514,6 +582,7 @@ function setupKeyboardControls() {
       default: break;
     }
   };
+  
   window.addEventListener('keydown', onKeyDown);
   window.addEventListener('keyup', onKeyUp);
 }
@@ -545,6 +614,7 @@ function updateDynamicButtons() {
     btn.textContent = getButtonLabel(animName);
     btn.addEventListener('click', () => {
       animationController.playOneShot(animName);
+      btn.blur();
     });
     combatContainer.appendChild(btn);
   });
@@ -556,7 +626,9 @@ function updateDynamicButtons() {
     btn.className = 'anim-btn death-btn';
     btn.textContent = getButtonLabel(animName);
     btn.addEventListener('click', () => {
+      clearKeyboardState();
       animationController.playDeath(animName);
+      btn.blur();
     });
     deathContainer.appendChild(btn);
   });
@@ -654,10 +726,14 @@ function setupOrbitControls() {
     orbit.elevation += dy * 0.005;
     const limit = Math.PI/2 - 0.01;
     orbit.elevation = Math.max(-limit, Math.min(limit, orbit.elevation));
+    // Recompute target yaw continuously while rotating camera with keys held
+    updateMovementFromKeysContinuous();
   };
   const onWheel = (e) => {
     orbit.distance *= (1 + e.deltaY * 0.001);
     orbit.distance = Math.max(5, Math.min(300, orbit.distance));
+    // Not strictly necessary (zoom doesn't change forward vector direction), but harmless:
+    // updateMovementFromKeysContinuous();
   };
   canvas.addEventListener('mousedown', onDown);
   window.addEventListener('mouseup', onUp);
@@ -718,6 +794,8 @@ function setupOrbitControls() {
       orbit.elevation += dy * 0.005;
       const limit = Math.PI/2 - 0.01;
       orbit.elevation = Math.max(-limit, Math.min(limit, orbit.elevation));
+      // Recompute target yaw continuously while rotating camera with keys held
+      updateMovementFromKeysContinuous();
       e.preventDefault();
     }
   };
@@ -929,7 +1007,9 @@ function updateAnimationUI() {
       State: ${state.state}<br>
       Stance: ${state.stance} | Moving: ${state.isMoving}<br>
       Jumping: ${state.isJumping} | Dead: ${state.isDead}<br>
-      Blend: ${(state.blendFactor * 100).toFixed(1)}%
+      Blend: ${(state.blendFactor * 100).toFixed(1)}%<br>
+      Button Mode: ${buttonControlMode}<br>
+      Keys: ${getCurrentKeyboardMovementState()}
     `;
   }
   
@@ -949,7 +1029,6 @@ function updateButtonAvailability(state) {
     
     btn.disabled = !isEnabled;
     
-    // Add visual styling for stance-specific buttons
     if (animName.startsWith('cr')) {
       btn.classList.toggle('crouch-specific', true);
       btn.classList.remove('stand-specific');
@@ -964,19 +1043,16 @@ function updateButtonAvailability(state) {
       }
     }
     
-    // Add stance indication
     if (state.stance === 'standing') {
       btn.classList.toggle('wrong-stance', animName.startsWith('cr'));
-    } else { // crouching
+    } else {
       btn.classList.toggle('wrong-stance', !animName.startsWith('cr'));
     }
     
-    // Clear tooltip if button is valid
     if (isValid || state.isDead) {
       btn.removeAttribute('data-stance-required');
     }
     
-    // Add dead state tooltip
     if (state.isDead) {
       btn.setAttribute('data-stance-required', 'Character is Dead');
     }
@@ -989,7 +1065,6 @@ function updateButtonAvailability(state) {
     
     btn.disabled = !isValid;
     
-    // Add visual styling for stance-specific buttons
     if (animName.startsWith('cr')) {
       btn.classList.toggle('crouch-specific', true);
       btn.classList.remove('stand-specific');
@@ -1004,14 +1079,12 @@ function updateButtonAvailability(state) {
       }
     }
     
-    // Add stance indication
     if (state.stance === 'standing') {
       btn.classList.toggle('wrong-stance', animName.startsWith('cr'));
-    } else { // crouching
+    } else {
       btn.classList.toggle('wrong-stance', !animName.startsWith('cr'));
     }
     
-    // Clear tooltip if button is valid
     if (isValid) {
       btn.removeAttribute('data-stance-required');
     }
@@ -1059,6 +1132,9 @@ function render(timeMs) {
   const t = timeMs * 0.001;
   const delta = lastTime ? (t - lastTime) : 0;
   lastTime = t;
+
+  // While keys are held, keep recomputing desired yaw from current camera basis
+  updateMovementFromKeysContinuous();
 
   // Smoothly rotate character towards targetYaw
   const yawLerpRate = 10.0; // rad/sec responsiveness
@@ -1180,6 +1256,9 @@ async function init() {
 
   characterLoader = new CharacterLoader();
   animationController = new AnimationController();
+  
+  // Set up the movement state callback for the animation controller
+  animationController.setMovementStateCallback(getCurrentKeyboardMovementState);
   
   setupControls();
   setupKeyboardControls();
