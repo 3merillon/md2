@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>WebGL2 MD2 - Character Controller</title>
+  <link rel="stylesheet" href="src/style.css"/>
+</head>
+<body>
+  <div id="container"></div>
+  <div id="info">
+    WebGL2 - MD2 Character Controller System
+  </div>
+
+  <div id="controls">
+    <div class="control-group">
+      <label>Controls</label>
+    </div>
+    <div class="control-item">
+      <label for="speed">speed</label>
+      <input type="range" id="speed" min="0" max="2" step="0.01" value="1"/>
+    </div>
+    <div class="control-item">
+      <label for="wireframe">wireframe</label>
+      <input type="checkbox" id="wireframe"/>
+    </div>
+
+    <div class="control-group">
+      <label>Character</label>
+    </div>
+    <div class="control-item">
+      <select id="characters">
+        <!-- Populated dynamically -->
+      </select>
+    </div>
+
+    <div class="control-group">
+      <label>Light</label>
+    </div>
+    <div class="control-item">
+      <label for="lightAzimuth">azimuth</label>
+      <input type="range" id="lightAzimuth" min="0" max="360" step="1" value="45" />
+    </div>
+    <div class="control-item">
+      <label for="lightElevation">elevation</label>
+      <input type="range" id="lightElevation" min="-89" max="89" step="1" value="20" />
+    </div>
+
+    <div class="control-group">
+      <label>Skins</label>
+    </div>
+    <div class="control-item">
+      <select id="skins">
+        <!-- Populated dynamically -->
+      </select>
+    </div>
+
+    <div class="control-group">
+      <label>Weapons</label>
+    </div>
+    <div class="control-item">
+      <select id="weapons">
+        <!-- Populated dynamically -->
+      </select>
+    </div>
+
+    <div class="control-group">
+      <label>Stance & Movement</label>
+    </div>
+    <div class="stance-grid">
+      <button id="standStillBtn" class="stance-btn">Stand Still</button>
+      <button id="standMoveBtn" class="stance-btn">Run</button>
+      <button id="crouchStillBtn" class="stance-btn">Crouch Still</button>
+      <button id="crouchMoveBtn" class="stance-btn">Crawl</button>
+    </div>
+
+    <div class="control-group">
+      <label>Jump</label>
+    </div>
+    <div class="jump-container">
+      <button id="jumpBtn" class="jump-btn">JUMP</button>
+    </div>
+
+    <div class="control-group">
+      <label>Combat Actions</label>
+    </div>
+    <div class="button-grid" id="combatActions">
+      <!-- Populated dynamically based on stance -->
+    </div>
+
+    <div class="control-group">
+      <label>Death Animations</label>
+    </div>
+    <div class="button-grid" id="deathActions">
+      <!-- Populated dynamically based on stance -->
+    </div>
+    
+    <div class="resurrect-container">
+      <button id="resurrectBtn" class="resurrect-btn">Resurrect</button>
+    </div>
+
+    <div id="debugInfo" class="debug-info">
+      <!-- Debug information -->
+    </div>
+  </div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

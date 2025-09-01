@@ -1,0 +1,624 @@
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #000;
+  color: #fff;
+  font-family: Monospace;
+  font-size: 13px;
+  line-height: 24px;
+  overscroll-behavior: none;
+}
+
+#container {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+}
+
+#info {
+  position: absolute;
+  top: 10px; width: 100%;
+  text-align: center; z-index: 100;
+  display: block;
+}
+
+#info a { 
+  color: #f00; 
+  font-weight: bold; 
+  text-decoration: underline; 
+}
+
+#controls {
+  position: absolute;
+  top: 10px; left: 10px;
+  width: 300px;
+  background: rgba(0,0,0,0.85);
+  padding: 15px; 
+  border-radius: 8px;
+  z-index: 100;
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  backdrop-filter: blur(5px);
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+.control-group {
+  margin: 15px 0 8px 0;
+  font-weight: bold;
+  color: #fff;
+  border-bottom: 1px solid #333;
+  padding-bottom: 5px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.control-group:first-child { 
+  margin-top: 0; 
+}
+
+.control-item {
+  margin: 8px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.control-item label {
+  color: #ccc;
+  margin-right: 10px;
+  flex: 1;
+  font-size: 11px;
+}
+
+.control-item input,
+.control-item select {
+  background: #333;
+  border: 1px solid #555;
+  color: #fff;
+  padding: 4px 8px;
+  border-radius: 4px;
+  flex: 1;
+  max-width: 120px;
+  font-family: Monospace;
+  font-size: 11px;
+}
+
+.control-item input[type="checkbox"] {
+  max-width: 20px;
+  flex: none;
+}
+
+.control-item input[type="range"] {
+  background: #222;
+}
+
+.control-item input[type="range"]::-webkit-slider-thumb {
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #666;
+  cursor: pointer;
+  border: 2px solid #888;
+}
+
+.control-item input[type="range"]::-webkit-slider-thumb:hover {
+  background: #888;
+  border-color: #aaa;
+}
+
+.control-item select:focus,
+.control-item input:focus {
+  outline: none;
+  border-color: #777;
+  box-shadow: 0 0 5px rgba(119, 119, 119, 0.3);
+}
+
+/* Stance control grid */
+.stance-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.stance-btn {
+  padding: 10px 12px;
+  border: none;
+  border-radius: 6px;
+  font-family: Monospace;
+  font-size: 11px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  background: #2a4d3a;
+  color: #8fbc8f;
+  border: 2px solid #4a7c59;
+  position: relative;
+}
+
+.stance-btn:hover:not(:disabled) {
+  background: #3a6d4a;
+  color: #afdfaf;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(74, 124, 89, 0.3);
+}
+
+.stance-btn:active:not(:disabled) {
+  transform: translateY(0px) scale(0.98);
+}
+
+.stance-btn.active {
+  background: #4a7d5a;
+  color: #bfffbf;
+  border-color: #6a9d7a;
+  box-shadow: 0 0 12px rgba(175, 255, 175, 0.4);
+  transform: scale(1.05);
+}
+
+.stance-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  background: #1a2a1a !important;
+  color: #444 !important;
+  border-color: #333 !important;
+  transform: none !important;
+}
+
+/* Jump button */
+.jump-container {
+  margin-top: 8px;
+  overflow: hidden;
+}
+
+.jump-btn {
+  width: 100%;
+  padding: 15px 20px;
+  border: none;
+  border-radius: 8px;
+  font-family: Monospace;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  background: linear-gradient(135deg, #4a4a7d, #5a5a9d);
+  color: #bfbfff;
+  border: 2px solid #6a6abd;
+  letter-spacing: 1px;
+  position: relative;
+  overflow: hidden;
+  will-change: transform;
+}
+
+.jump-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: left 0.5s ease;
+}
+
+.jump-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #5a5a9d, #6a6abd);
+  color: #dfdfff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(106, 106, 189, 0.4);
+}
+
+.jump-btn:hover:not(:disabled)::before {
+  left: 100%;
+}
+
+.jump-btn:active:not(:disabled) {
+  transform: translateY(0px) scale(0.98);
+}
+
+.jump-btn.active {
+  background: linear-gradient(135deg, #6a6abd, #7a7acd);
+  color: #ffffff;
+  box-shadow: 0 0 16px rgba(122, 122, 205, 0.6);
+  animation: jumpPulse 0.6s ease-in-out infinite alternate;
+}
+
+.jump-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  background: #2a2a3d !important;
+  color: #444 !important;
+  border-color: #333 !important;
+  transform: none !important;
+}
+
+@keyframes jumpPulse {
+  from { 
+    box-shadow: 0 0 16px rgba(122, 122, 205, 0.6);
+    transform: scale(1.0);
+  }
+  to { 
+    box-shadow: 0 0 24px rgba(122, 122, 205, 0.8);
+    transform: scale(1.02);
+  }
+}
+
+/* Combat and death action buttons */
+.button-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+/* Special handling for buttons that might be alone in a row */
+.button-grid .anim-btn:nth-child(odd):last-child {
+  grid-column: span 2;
+}
+
+.anim-btn {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 4px;
+  font-family: Monospace;
+  font-size: 11px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Combat button styling */
+.combat-btn {
+  background: #4d3a2a;
+  color: #bc8f8f;
+  border: 1px solid #7c5949;
+}
+
+.combat-btn:hover:not(:disabled) {
+  background: #6d4a3a;
+  color: #dfafaf;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(109, 74, 58, 0.3);
+}
+
+.combat-btn:active:not(:disabled) {
+  background: #3d2a1a;
+  transform: scale(0.95);
+}
+
+.combat-btn.active {
+  background: #7d5a4a;
+  color: #ffbfbf;
+  border-color: #9d7a6a;
+  box-shadow: 0 0 10px rgba(255, 191, 191, 0.4);
+  transform: scale(1.05);
+  animation: activePulse 1s ease-in-out infinite alternate;
+}
+
+/* Death button styling */
+.death-btn {
+  background: #4d2a2a;
+  color: #bc8f8f;
+  border: 1px solid #7c4949;
+}
+
+.death-btn:hover:not(:disabled) {
+  background: #6d3a3a;
+  color: #dfafaf;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(109, 58, 58, 0.3);
+}
+
+.death-btn:active:not(:disabled) {
+  background: #3d1a1a;
+  transform: scale(0.95);
+}
+
+.death-btn.active {
+  background: #7d4a4a;
+  color: #ffbfbf;
+  border-color: #9d6a6a;
+  box-shadow: 0 0 10px rgba(255, 191, 191, 0.4);
+  transform: scale(1.05);
+  animation: activePulse 1s ease-in-out infinite alternate;
+}
+
+@keyframes activePulse {
+  from { opacity: 1.0; }
+  to { opacity: 0.8; }
+}
+
+/* Stance-specific button styling */
+.stand-specific {
+  border-left: 3px solid #4a7c59; /* Green indicator for standing */
+}
+
+.crouch-specific {
+  border-left: 3px solid #7c7c4a; /* Yellow indicator for crouching */
+}
+
+/* Wrong stance styling */
+.wrong-stance {
+  opacity: 0.4;
+  background: #2a2a2a !important;
+  color: #666 !important;
+  border-color: #444 !important;
+  cursor: not-allowed;
+}
+
+.wrong-stance:hover {
+  background: #2a2a2a !important;
+  color: #666 !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* Disabled state styling */
+.anim-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  transform: none !important;
+  background: #1a1a1a !important;
+  color: #444 !important;
+  border-color: #333 !important;
+}
+
+.anim-btn:disabled:hover {
+  background: #1a1a1a !important;
+  color: #444 !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* Add stance indicators with pseudo-elements */
+.stand-specific::before {
+  content: "S";
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  font-size: 8px;
+  font-weight: bold;
+  color: #4a7c59;
+  opacity: 0.7;
+  background: rgba(0,0,0,0.3);
+  border-radius: 2px;
+  padding: 1px 2px;
+  line-height: 1;
+}
+
+.crouch-specific::before {
+  content: "C";
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  font-size: 8px;
+  font-weight: bold;
+  color: #7c7c4a;
+  opacity: 0.7;
+  background: rgba(0,0,0,0.3);
+  border-radius: 2px;
+  padding: 1px 2px;
+  line-height: 1;
+}
+
+.wrong-stance::before {
+  color: #444 !important;
+}
+
+/* Tooltip-style hover information */
+.wrong-stance,
+.stance-btn:disabled,
+.jump-btn:disabled {
+  position: relative;
+}
+
+.wrong-stance::after,
+.stance-btn:disabled::after,
+.jump-btn:disabled::after {
+  content: attr(data-stance-required);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.9);
+  color: #fff;
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 10px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+  z-index: 1000;
+  border: 1px solid #555;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+.wrong-stance:hover::after,
+.stance-btn:disabled:hover::after,
+.jump-btn:disabled:hover::after {
+  opacity: 1;
+}
+
+/* Resurrect button */
+.resurrect-container {
+  margin-top: 12px;
+}
+
+.resurrect-btn {
+  width: 100%;
+  padding: 12px 16px;
+  border: none;
+  border-radius: 6px;
+  font-family: Monospace;
+  font-size: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  background: #2a2a4d;
+  color: #8f8fbc;
+  border: 2px solid #494979;
+  letter-spacing: 0.5px;
+}
+
+.resurrect-btn:hover {
+  background: #3a3a6d;
+  color: #afafdf;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(58, 58, 109, 0.3);
+}
+
+.resurrect-btn:active {
+  background: #1a1a3d;
+  transform: scale(0.95);
+}
+
+/* Debug info */
+.debug-info {
+  margin-top: 15px;
+  padding: 10px 12px;
+  background: rgba(0,0,0,0.7);
+  border: 1px solid #333;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 10px;
+  color: #aaa;
+  line-height: 1.6;
+  backdrop-filter: blur(2px);
+}
+
+.debug-info strong {
+  color: #ccc;
+}
+
+/* Scrollbar styling */
+#controls::-webkit-scrollbar {
+  width: 8px;
+}
+
+#controls::-webkit-scrollbar-track {
+  background: rgba(0,0,0,0.3);
+  border-radius: 4px;
+}
+
+#controls::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.3);
+  border-radius: 4px;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+#controls::-webkit-scrollbar-thumb:hover {
+  background: rgba(255,255,255,0.5);
+}
+
+/* Responsive adjustments */
+@media (max-height: 800px) {
+  #controls {
+    font-size: 11px;
+  }
+  
+  .control-group {
+    margin: 12px 0 6px 0;
+  }
+  
+  .stance-btn,
+  .anim-btn {
+    padding: 6px 10px;
+    font-size: 10px;
+  }
+  
+  .jump-btn {
+    padding: 12px 16px;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 400px) {
+  #controls {
+    width: calc(100vw - 40px);
+    left: 20px;
+    right: 20px;
+  }
+}
+
+/* Animation effects for state transitions */
+.stance-btn,
+.anim-btn,
+.jump-btn {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Subtle glow effects */
+.stance-btn.active,
+.anim-btn.active,
+.jump-btn.active {
+  position: relative;
+}
+
+.stance-btn.active::after,
+.anim-btn.active::after,
+.jump-btn.active::after {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: inherit;
+  border-radius: inherit;
+  opacity: 0.3;
+  z-index: -1;
+  filter: blur(4px);
+  animation: glowPulse 2s ease-in-out infinite alternate;
+}
+
+@keyframes glowPulse {
+  from { opacity: 0.3; }
+  to { opacity: 0.6; }
+}
+
+/* Focus styles for accessibility */
+.stance-btn:focus,
+.anim-btn:focus,
+.jump-btn:focus,
+.resurrect-btn:focus {
+  outline: 2px solid rgba(255, 255, 255, 0.5);
+  outline-offset: 2px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .stance-btn,
+  .anim-btn,
+  .jump-btn,
+  .resurrect-btn {
+    border-width: 2px;
+  }
+  
+  .wrong-stance {
+    opacity: 0.6;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .stance-btn,
+  .anim-btn,
+  .jump-btn,
+  .resurrect-btn {
+    transition: none;
+  }
+  
+  .jump-btn.active,
+  .anim-btn.active {
+    animation: none;
+  }
+}
