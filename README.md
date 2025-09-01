@@ -88,7 +88,7 @@ Bring your own MD2 into the party.
   - skins: list of `{ name, texture }`
 
 Example:
-&&&js
+```js
 {
   name: 'myhero',
   mainModel: 'myhero/myhero.md2',
@@ -100,7 +100,7 @@ Example:
     { name: 'desert', texture: 'myhero/skins/desert.png' }
   ]
 }
-&&&
+```
 
 3) Map animations (if needed)
 - `src/md2.js` contains `ANIMS` for the animations used by the UI and controller.
@@ -129,11 +129,11 @@ When you press Space:
 - We then blend out of jump into that chosen base. This avoids that awkward pop where you briefly see an outdated base anim before switching to the correct one.
 
 You can adjust when landing starts via:
-&&&js
+```js
 animationController.setJumpExitTiming(0..1)
 // 1.0 means at the last frame of the jump
 // 0.8 would begin the landing blend a bit earlier
-&&&
+```
 
 ---
 
