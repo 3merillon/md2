@@ -92,7 +92,7 @@ Bring your own MD2 into the party.
   - skins: list of `{ name, texture }`
 
 Example:
-&&&js
+```js
 {
   name: 'myhero',
   mainModel: 'myhero/myhero.md2',
@@ -104,7 +104,7 @@ Example:
     { name: 'desert', texture: 'myhero/skins/desert.png' }
   ]
 }
-&&&
+```
 
 3) Map animations (if needed)  
 - `src/md2.js` contains `ANIMS` for the animations used by the UI and controller.  
@@ -131,11 +131,11 @@ When you press Space:
 - We then blend out of jump into that chosen base. This avoids that awkward pop where you briefly see an outdated base anim before switching to the correct one.
 
 You can adjust when landing starts via:
-&&&js
+```js
 animationController.setJumpExitTiming(0..1)
 // 1.0 means at the last frame of the jump
 // 0.8 would begin the landing blend a bit earlier
-&&&
+```
 
 ---
 
@@ -147,8 +147,6 @@ This project uses Vite.
 - Dev server: `npm run dev` (open the printed local URL)  
 - Build: `npm run build`  
 - Preview production build: `npm run preview`
-
-Note: Paths assume the app is served from the repository root with `/src` and your model folders readable.
 
 ---
 
@@ -169,16 +167,9 @@ This repository separates code (MIT) from third‑party model licensing. Here’
 ### Not included (user‑supplied)
 - Ogro (by Magarnigal; skins by Ogro_Fix; additional skin by Deranged)
   - Licensing for redistribution is unclear. To stay compliant, we do not ship Ogro in this repo or the default build.
-  - If you want to try Ogro locally, download from the three.js examples and place it in your local project (do not commit it):
+  - If you want to try Ogro locally, download from the three.js examples and place it in your local project
     - https://github.com/mrdoob/three.js/tree/dev/examples/models/md2/ogro
-  - Keep `Ogro.txt` in the same folder and do not use in commercial products unless you have permissions from the rights holders.
-  - Suggested local paths (example):
-    - `public/ogro/ogro.md2`
-    - `public/ogro/weapon.md2`
-    - `public/ogro/skins/...`
-  - Add these paths to your `.gitignore` to avoid accidental commits.
 
-If you’re unsure about any asset’s license, remove it and use a permissively licensed alternative (CC0/CC‑BY, MIT‑style) or your own content.
 
 ---
 
@@ -198,8 +189,8 @@ If we missed anyone, please open an issue or PR and we’ll gladly correct and e
 - Code in this repository is under MIT (see LICENSE).
 - Third‑party models and textures are subject to their own licenses:
   - Ratamahatta: non‑commercial; attribution required (see `ratamahatta.txt`).
-  - Example model: see LICENSE in its folder.
-  - Ogro (optional, user‑supplied): not included; if you import locally, keep `Ogro.txt` and respect its terms.
+  - Example model: see .txt in its folder.
+  - Ogro (optional, user‑supplied): not included..
 - Quake and Quake II are registered trademarks of id Software.
 
 Have fun, be kind, ship frames.

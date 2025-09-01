@@ -24,14 +24,5 @@ dist-ssr
 *.sln
 *.sw?
 
-# WASM build outputs in Vite src
-src/gl/marching-cubes-wasm/marching_cubes_bg.wasm
-src/gl/marching-cubes-wasm/marching_cubes.js
-src/gl/marching-cubes-wasm/marching_cubes_bg.js
-src/gl/marching-cubes-wasm/.wasm-pack*
-
-# Vite config (if generated locally)
+# Vite config
 vite.config.js
-
-public/ogro/
-**/ogro/
