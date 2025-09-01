@@ -33,25 +33,13 @@ export class CharacterLoader {
         ]
       },
       {
-        name: 'ogro',
-        mainModel: 'ogro/ogro.md2',
+        name: 'gunner',
+        mainModel: 'gunner/gunner.md2',
         weapons: [
-          { name: 'weapon', model: 'ogro/weapon.md2', texture: 'ogro/skins/weapon.png' }
+          { name: 'weapon', model: 'gunner/weapon.md2', texture: 'gunner/skins/weapon.png' }
         ],
         skins: [
-          { name: 'arboshak', texture: 'ogro/skins/arboshak.png' },
-          { name: 'ctf_b', texture: 'ogro/skins/ctf_b.png' },
-          { name: 'ctf_r', texture: 'ogro/skins/ctf_r.png' },
-          { name: 'darkam', texture: 'ogro/skins/darkam.png' },
-          { name: 'freedom', texture: 'ogro/skins/freedom.png' },
-          { name: 'gib', texture: 'ogro/skins/gib.png' },
-          { name: 'gordogh', texture: 'ogro/skins/gordogh.png' },
-          { name: 'grok', texture: 'ogro/skins/grok.png' },
-          { name: 'igdosh', texture: 'ogro/skins/igdosh.png' },
-          { name: 'khorne', texture: 'ogro/skins/khorne.png' },
-          { name: 'nabogro', texture: 'ogro/skins/nabogro.png' },
-          { name: 'ogrobase', texture: 'ogro/skins/ogrobase.png' },
-          { name: 'sharokh', texture: 'ogro/skins/sharokh.png' }
+          { name: 'gunner', texture: 'gunner/skins/gunner.png' }
         ]
       }
     ];
